@@ -34,7 +34,8 @@ function $Breadcrumb() {
         // Early catch of $viewContentLoaded event
         $rootScope.$on('$viewContentLoaded', function (event) {
             // With nested views, the event occur several times, in "wrong" order
-            if(isAOlderThanB(event.targetScope.$id, $lastViewScope.$id)) {
+            if(!event.targetScope.ncyBreadcrumbIgnore &&
+                isAOlderThanB(event.targetScope.$id, $lastViewScope.$id)) {
                 $lastViewScope = event.targetScope;
             }
         });
@@ -204,7 +205,7 @@ function BreadcrumbDirective($interpolate, $breadcrumb, $rootScope) {
                 var renderBreadcrumb = function() {
                     deregisterWatchers(labelWatchers);
                     labelWatchers = [];
-                    
+
                     var viewScope = $breadcrumb.$getLastViewScope();
                     scope.steps = $breadcrumb.getStatesChain();
                     angular.forEach(scope.steps, function (step) {
@@ -219,8 +220,10 @@ function BreadcrumbDirective($interpolate, $breadcrumb, $rootScope) {
                     });
                 };
 
-                $rootScope.$on('$viewContentLoaded', function () {
-                    renderBreadcrumb();
+                $rootScope.$on('$viewContentLoaded', function (event) {
+                    if(!event.targetScope.ncyBreadcrumbIgnore) {
+                        renderBreadcrumb();
+                    }
                 });
 
                 // View(s) may be already loaded while the directive's linking
@@ -252,7 +255,7 @@ function BreadcrumbLastDirective($interpolate, $breadcrumb, $rootScope) {
                     var renderLabel = function() {
                         deregisterWatchers(labelWatchers);
                         labelWatchers = [];
-                        
+
                         var viewScope = $breadcrumb.$getLastViewScope();
                         var lastStep = $breadcrumb.getLastStep();
                         if(lastStep) {
@@ -269,8 +272,10 @@ function BreadcrumbLastDirective($interpolate, $breadcrumb, $rootScope) {
                         }
                     };
 
-                    $rootScope.$on('$viewContentLoaded', function () {
-                        renderLabel();
+                    $rootScope.$on('$viewContentLoaded', function (event) {
+                        if(!event.targetScope.ncyBreadcrumbIgnore) {
+                            renderLabel();
+                        }
                     });
 
                     // View(s) may be already loaded while the directive's linking
@@ -296,13 +301,13 @@ function BreadcrumbTextDirective($interpolate, $breadcrumb, $rootScope) {
             if(template) {
                 cElement.html(template);
             }
-            
+
             var separator = cElement.attr(cAttrs.$attr.ncyBreadcrumbTextSeparator) || ' / ';
 
             return {
                 post: function postLink(scope) {
                     var labelWatchers = [];
-                    
+
                     var registerWatchersText = function(labelWatcherArray, interpolationFunction, viewScope) {
                         angular.forEach(getExpression(interpolationFunction), function(expression) {
                             var watcher = viewScope.$watch(expression, function(newValue, oldValue) {
@@ -317,7 +322,7 @@ function BreadcrumbTextDirective($interpolate, $breadcrumb, $rootScope) {
                     var renderLabel = function() {
                         deregisterWatchers(labelWatchers);
                         labelWatchers = [];
-                        
+
                         var viewScope = $breadcrumb.$getLastViewScope();
                         var steps = $breadcrumb.getStatesChain();
                         var combinedLabels = [];
@@ -331,12 +336,14 @@ function BreadcrumbTextDirective($interpolate, $breadcrumb, $rootScope) {
                                 combinedLabels.push(step.name);
                             }
                         });
-                        
+
                         scope.ncyBreadcrumbChain = combinedLabels.join(separator);
                     };
 
-                    $rootScope.$on('$viewContentLoaded', function () {
-                        renderLabel();
+                    $rootScope.$on('$viewContentLoaded', function (event) {
+                        if(!event.targetScope.ncyBreadcrumbIgnore) {
+                            renderLabel();
+                        }
                     });
 
                     // View(s) may be already loaded while the directive's linking
