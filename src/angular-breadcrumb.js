@@ -307,7 +307,7 @@ function BreadcrumbTextDirective($interpolate, $breadcrumb, $rootScope) {
             return {
                 post: function postLink(scope) {
                     var labelWatchers = [];
-
+                    
                     var registerWatchersText = function(labelWatcherArray, interpolationFunction, viewScope) {
                         angular.forEach(getExpression(interpolationFunction), function(expression) {
                             var watcher = viewScope.$watch(expression, function(newValue, oldValue) {
